@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>לוח הפרויקטים של גיא</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#faf7f1;
+    --ink:#1b1815;
+    --ink-soft:#5c554c;
+    --line:#e4dccf;
+    --accent:#bc531f;
+    --accent-ink:#9c4418;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:'Heebo',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.55;
+    padding:0 0 64px;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:0 18px}
+  header{
+    padding:34px 0 18px;
+    border-bottom:2px solid var(--ink);
+  }
+  h1{font-size:26px;font-weight:700;letter-spacing:-.2px}
+  .updated{
+    margin-top:6px;
+    font-size:13.5px;
+    color:var(--ink-soft);
+  }
+  .updated b{color:var(--ink);font-weight:500}
+  .headline{
+    margin-top:14px;
+    font-size:15px;
+    padding:12px 14px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:#fffdf9;
+  }
+  .summary{
+    display:flex;gap:8px;flex-wrap:wrap;
+    margin-top:14px;
+  }
+  .chip{
+    font-size:13px;
+    padding:5px 11px;
+    border:1px solid var(--line);
+    border-radius:999px;
+    background:#fffdf9;
+    color:var(--ink-soft);
+    text-decoration:none;
+  }
+  .chip b{color:var(--ink);font-weight:700}
+  section{margin-top:30px}
+  .group-head{
+    display:flex;align-items:baseline;gap:10px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--ink);
+  }
+  .group-head h2{font-size:18px;font-weight:700}
+  .group-head .count{font-size:13px;color:var(--ink-soft)}
+  .group-stuck .group-head{border-bottom-color:var(--accent)}
+  .group-stuck h2{color:var(--accent-ink)}
+  .cards{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+  .card{
+    background:#fffdf9;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 16px;
+  }
+  .card.stuck{border-color:var(--accent)}
+  .card-top{
+    display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  }
+  .card h3{font-size:15.5px;font-weight:700;line-height:1.35}
+  .card .date{font-size:12px;color:var(--ink-soft);white-space:nowrap}
+  .card p{
+    margin-top:5px;
+    font-size:14px;
+    color:var(--ink-soft);
+    line-height:1.6;
+  }
+  .flag{
+    display:inline-block;
+    margin-top:8px;
+    font-size:12.5px;
+    font-weight:500;
+    color:var(--accent-ink);
+    border:1px solid var(--accent);
+    border-radius:6px;
+    padding:2px 8px;
+  }
+  .empty{
+    margin-top:14px;
+    font-size:14px;
+    color:var(--ink-soft);
+    padding:14px 16px;
+    border:1px dashed var(--line);
+    border-radius:12px;
+  }
+  footer{
+    margin-top:44px;
+    padding-top:14px;
+    border-top:1px solid var(--line);
+    font-size:12.5px;
+    color:var(--ink-soft);
+    text-align:center;
+  }
+  @media (min-width:641px){
+    .wrap{max-width:680px;padding:0 24px}
+    h1{font-size:30px}
+    .cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>לוח הפרויקטים של גיא</h1>
+    <div class="updated">עדכון אחרון: <b id="updated">טוען…</b></div>
+    <div class="headline" id="headline"></div>
+    <nav class="summary" id="summary"></nav>
+  </header>
+  <main id="main"></main>
+  <footer>האינסטינקט של גיא · מתעדכן פעמיים ביום, 09:00 ו-19:00</footer>
+</div>
+<script>
+const esc = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+fetch('data.json?ts=' + Date.now())
+  .then(r => r.json())
+  .then(d => {
+    document.getElementById('updated').textContent = d.updated_label;
+    document.getElementById('headline').textContent = d.headline;
+    const summary = document.getElementById('summary');
+    summary.innerHTML = d.groups.map(g =>
+      `<a class="chip" href="#g-${g.id}">${esc(g.title)} <b>${g.items.length}</b></a>`
+    ).join('');
+    document.getElementById('main').innerHTML = d.groups.map(g => `
+      <section id="g-${g.id}" class="group-${g.id}">
+        <div class="group-head"><h2>${esc(g.title)}</h2><span class="count">${g.items.length} פרויקטים</span></div>
+        ${g.items.length === 0
+          ? `<div class="empty">אין כרגע פרויקטים תקועים. אם משהו ייתקע - הוא יופיע כאן עם הסבר.</div>`
+          : `<div class="cards">${g.items.map(it => `
+              <article class="card ${it.stuck ? 'stuck' : ''}">
+                <div class="card-top"><h3>${esc(it.name)}</h3><span class="date">${esc(it.updated)}</span></div>
+                <p>${esc(it.status)}</p>
+                ${it.stuck ? `<span class="flag">תקוע: ${esc(it.stuck)}</span>` : ''}
+              </article>`).join('')}</div>`}
+      </section>`).join('');
+  })
+  .catch(() => {
+    document.getElementById('updated').textContent = 'לא ניתן לטעון נתונים כרגע';
+  });
+</script>
+</body>
+</html>
